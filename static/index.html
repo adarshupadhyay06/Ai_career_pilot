@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Career Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --card: #16161a;
+    --border: #2a2a30;
+    --accent: #7c6af7;
+    --accent2: #32b99e;
+    --text: #f0eff5;
+    --muted: #7a7a8a;
+    --success: #4fc9b0;
+    --warn: #f0a050;
+    --danger: #f07070;
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  header {
+    padding: 28px 40px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  header h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  header span { color: var(--muted); font-size: 13px; margin-left: 6px; }
+
+  /* Steps nav */
+  .steps-nav {
+    display: flex;
+    gap: 0;
+    padding: 28px 40px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-tab {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 24px 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .2s;
+    user-select: none;
+  }
+  .step-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .step-tab .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--border); color: var(--muted);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .step-tab.active .num { background: var(--accent); color: #fff; }
+  .step-tab.done .num { background: var(--success); color: #fff; }
+  .step-tab.done { color: var(--text); }
+
+  /* Content */
+  .content { max-width: 780px; margin: 40px auto; padding: 0 24px; }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .icon { font-size: 20px; }
+
+  /* Form elements */
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 7px; font-weight: 500; letter-spacing: .3px; }
+  
+  textarea, input[type="text"], select {
+    width: 100%;
+    background: #1e1e24;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border .2s;
+    resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+  textarea { min-height: 130px; }
+  select { cursor: pointer; }
+
+  /* File upload */
+  .file-drop {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .file-drop:hover { border-color: var(--accent); background: rgba(124,106,247,.05); }
+  .file-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .file-drop .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .file-drop p { font-size: 13px; color: var(--muted); }
+  .file-drop .file-name { color: var(--accent2); font-size: 14px; font-weight: 500; margin-top: 6px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6a5ae0; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #353540; }
+
+  /* Loading spinner */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Score badge */
+  .score-ring {
+    display: flex; align-items: center; justify-content: center;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid var(--accent);
+    font-family: 'Syne', sans-serif;
+    font-size: 26px; font-weight: 700;
+    margin: 0 auto 20px;
+  }
+  .score-ring.high { border-color: var(--success); color: var(--success); }
+  .score-ring.mid  { border-color: var(--warn);    color: var(--warn);    }
+  .score-ring.low  { border-color: var(--danger);  color: var(--danger);  }
+
+  /* Tags */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .tag {
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 500;
+  }
+  .tag.green { background: rgba(79,201,176,.15); color: var(--success); }
+  .tag.red   { background: rgba(240,112,112,.15); color: var(--danger);  }
+
+  /* Bullets */
+  .bullet-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .bullet-list li {
+    background: #1e1e24; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* Questions */
+  .question-item {
+    background: #1e1e24;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+  .question-item p { font-size: 14px; line-height: 1.6; margin-bottom: 12px; }
+  .q-num { font-family: 'Syne', sans-serif; font-size: 11px; color: var(--accent); letter-spacing: 1px; margin-bottom: 6px; }
+
+  /* Evaluation score bar */
+  .eval-score { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .eval-score .big-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px; font-weight: 700; color: var(--accent);
+    line-height: 1;
+  }
+  .eval-score .out-of { color: var(--muted); font-size: 16px; margin-top: 8px; }
+  .score-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .8s ease; }
+
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); font-weight: 600; margin-bottom: 8px;
+  }
+  .ideal-box {
+    background: rgba(79,201,176,.08);
+    border: 1px solid rgba(79,201,176,.25);
+    border-radius: 10px; padding: 14px;
+    font-size: 13px; line-height: 1.7; color: #ccc;
+  }
+
+  /* Pager */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Alert */
+  .alert {
+    padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; margin-top: 14px;
+    display: none;
+  }
+  .alert.error { background: rgba(240,112,112,.12); border: 1px solid rgba(240,112,112,.3); color: var(--danger); }
+  .alert.info  { background: rgba(124,106,247,.12); border: 1px solid rgba(124,106,247,.3); color: #a89cf5; }
+
+  .row { display: flex; gap: 12px; align-items: flex-start; }
+  .row .btn { margin-top: 22px; white-space: nowrap; }
+  .grow { flex: 1; }
+  .mt { margin-top: 18px; }
+  .mb { margin-bottom: 16px; }
+  .center { text-align: center; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">🎯</div>
+  <div>
+    <h1>AI Career Copilot <span>powered by Grok</span></h1>
+  </div>
+</header>
+
+<div class="steps-nav">
+  <div class="step-tab active" id="tab-1" onclick="goTab(1)">
+    <span class="num">1</span> Analyze Resume
+  </div>
+  <div class="step-tab" id="tab-2" onclick="goTab(2)">
+    <span class="num">2</span> Interview Questions
+  </div>
+  <div class="step-tab" id="tab-3" onclick="goTab(3)">
+    <span class="num">3</span> Evaluate Answer
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PAGE 1: Analyze -->
+  <div class="page active" id="page-1">
+    <div class="card">
+      <div class="card-title"><span class="icon">📄</span> Upload Your Resume & Job Description</div>
+
+      <label>Job Description</label>
+      <textarea id="jd-text" placeholder="Paste the job description here..."></textarea>
+
+      <div class="mt">
+        <label>Your Resume (PDF)</label>
+        <div class="file-drop" id="file-drop">
+          <input type="file" id="resume-file" accept=".pdf" onchange="onFileSelect(this)"/>
+          <div class="upload-icon">📂</div>
+          <p>Click to select your resume PDF</p>
+          <div class="file-name" id="file-name-display"></div>
+        </div>
+      </div>
+
+      <div class="mt">
+        <button class="btn btn-primary" id="analyze-btn" onclick="analyzeResume()">
+          <span class="spinner" id="analyze-spinner"></span>
+          ✨ Analyze My Resume
+        </button>
+      </div>
+      <div class="alert error" id="analyze-error"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="card" id="analysis-result" style="display:none">
+      <div class="card-title"><span class="icon">📊</span> Your Analysis</div>
+
+      <div class="center mb">
+        <div class="score-ring" id="score-ring">—</div>
+        <p style="color:var(--muted);font-size:13px">Match Score</p>
+      </div>
+
+      <hr/>
+
+      <div class="mb">
+        <div class="section-label">✅ Strengths</div>
+        <div class="tag-list" id="strengths-list"></div>
+      </div>
+
+      <div class="mb">
+        <div class="section-label">⚠️ Missing Skills</div>
+        <div class="tag-list" id="weaknesses-list"></div>
+      </div>
+
+      <div>
+        <div class="section-label">✏️ Improved Bullet Points</div>
+        <ul class="bullet-list" id="bullets-list"></ul>
+      </div>
+
+      <div class="mt">
+        <button class="btn btn-primary" onclick="goTab(2)">Next: Get Interview Questions →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Questions -->
+  <div class="page" id="page-2">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎤</span> Generate Interview Questions</div>
+
+      <div class="row">
+        <div class="grow">
+          <label>Focus Area</label>
+          <select id="focus-area">
+            <option>Technical Skills</option>
+            <option>Behavioral</option>
+            <option>System Design</option>
+            <option>Problem Solving</option>
+            <option>Leadership</option>
+            <option>Communication</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="gen-btn" onclick="generateQuestions()">
+          <span class="spinner" id="gen-spinner"></span>
+          Generate
+        </button>
+      </div>
+      <div class="alert error" id="gen-error"></div>
+    </div>
+
+    <div id="questions-result"></div>
+  </div>
+
+  <!-- PAGE 3: Evaluate -->
+  <div class="page" id="page-3">
+    <div class="card">
+      <div class="card-title"><span class="icon">🧠</span> Evaluate Your Answer</div>
+
+      <label>Interview Question</label>
+      <textarea id="eval-question" placeholder="Paste the interview question here..." style="min-height:80px"></textarea>
+
+      <div class="mt">
+        <label>Your Answer</label>
+        <textarea id="eval-answer" placeholder="Type your answer here..." style="min-height:150px"></textarea>
+      </div>
+
+      <div class="mt">
+        <button class="btn btn-primary" id="eval-btn" onclick="evaluateAnswer()">
+          <span class="spinner" id="eval-spinner"></span>
+          🎯 Evaluate My Answer
+        </button>
+      </div>
+      <div class="alert error" id="eval-error"></div>
+    </div>
+
+    <div class="card" id="eval-result" style="display:none">
+      <div class="card-title"><span class="icon">📋</span> Evaluation Result</div>
+
+      <div class="eval-score">
+        <div>
+          <div class="big-num" id="eval-score-num">—</div>
+          <div class="out-of">out of 10</div>
+        </div>
+        <div style="flex:1">
+          <div class="score-bar"><div class="score-bar-fill" id="eval-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="mb">
+        <div class="section-label">💬 Feedback</div>
+        <p id="eval-feedback" style="font-size:14px;line-height:1.7;color:#ccc"></p>
+      </div>
+
+      <hr/>
+
+      <div>
+        <div class="section-label">⭐ Ideal Answer</div>
+        <div class="ideal-box" id="eval-ideal"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = ''; // same origin — served by FastAPI
+let currentTab = 1;
+
+function goTab(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  document.getElementById('tab-' + n).classList.add('active');
+  currentTab = n;
+}
+
+function onFileSelect(input) {
+  const name = input.files[0]?.name || '';
+  document.getElementById('file-name-display').textContent = name ? '📎 ' + name : '';
+}
+
+function setLoading(btnId, spinnerId, loading) {
+  const btn = document.getElementById(btnId);
+  const sp  = document.getElementById(spinnerId);
+  btn.disabled = loading;
+  sp.style.display = loading ? 'block' : 'none';
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// --- ANALYZE ---
+async function analyzeResume() {
+  hideError('analyze-error');
+  const jd = document.getElementById('jd-text').value.trim();
+  const file = document.getElementById('resume-file').files[0];
+
+  if (!jd)   return showError('analyze-error', 'Please paste a job description.');
+  if (!file) return showError('analyze-error', 'Please select your resume PDF.');
+
+  setLoading('analyze-btn', 'analyze-spinner', true);
+
+  try {
+    const form = new FormData();
+    form.append('jd_text', jd);
+    form.append('resume', file);
+
+    const res  = await fetch(`${API}/api/analyze`, { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.detail || 'Analysis failed.');
+
+    const a = data.analysis;
+    renderAnalysis(a);
+    document.getElementById('tab-1').classList.add('done');
+  } catch(e) {
+    showError('analyze-error', '❌ ' + e.message);
+  } finally {
+    setLoading('analyze-btn', 'analyze-spinner', false);
+  }
+}
+
+function renderAnalysis(a) {
+  // Score
+  const ring = document.getElementById('score-ring');
+  ring.textContent = a.score;
+  ring.className = 'score-ring ' + (a.score >= 70 ? 'high' : a.score >= 40 ? 'mid' : 'low');
+
+  // Strengths
+  const sl = document.getElementById('strengths-list');
+  sl.innerHTML = a.strengths.map(s => `<span class="tag green">${s}</span>`).join('');
+
+  // Weaknesses
+  const wl = document.getElementById('weaknesses-list');
+  wl.innerHTML = a.weaknesses.map(w => `<span class="tag red">${w}</span>`).join('');
+
+  // Bullets
+  const bl = document.getElementById('bullets-list');
+  bl.innerHTML = a.improved_bullets.map(b => `<li>${b}</li>`).join('');
+
+  document.getElementById('analysis-result').style.display = 'block';
+}
+
+// --- QUESTIONS ---
+async function generateQuestions() {
+  hideError('gen-error');
+  const focus = document.getElementById('focus-area').value;
+  setLoading('gen-btn', 'gen-spinner', true);
+
+  try {
+    const res  = await fetch(`${API}/api/generate-questions?focus=${encodeURIComponent(focus)}`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) throw new Error(data.error || data.detail || 'Failed to generate questions.');
+
+    renderQuestions(data.questions, focus);
+    document.getElementById('tab-2').classList.add('done');
+  } catch(e) {
+    showError('gen-error', '❌ ' + e.message);
+  } finally {
+    setLoading('gen-btn', 'gen-spinner', false);
+  }
+}
+
+function renderQuestions(raw, focus) {
+  // Split numbered questions from a block of text
+  const lines = raw.split('\n').filter(l => l.trim());
+  const questions = [];
+  let current = '';
+  for (const line of lines) {
+    if (/^\d+[\.\)]/.test(line.trim())) {
+      if (current) questions.push(current.trim());
+      current = line.replace(/^\d+[\.\)]\s*/, '');
+    } else {
+      current += ' ' + line;
+    }
+  }
+  if (current) questions.push(current.trim());
+
+  const container = document.getElementById('questions-result');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-item">
+      <div class="q-num">QUESTION ${i+1} · ${focus.toUpperCase()}</div>
+      <p>${q}</p>
+      <button class="btn btn-secondary" style="font-size:13px;padding:8px 16px"
+        onclick="useQuestion(${JSON.stringify(q)})">
+        Practice This →
+      </button>
+    </div>
+  `).join('');
+}
+
+function useQuestion(q) {
+  document.getElementById('eval-question').value = q;
+  goTab(3);
+}
+
+// --- EVALUATE ---
+async function evaluateAnswer() {
+  hideError('eval-error');
+  const question = document.getElementById('eval-question').value.trim();
+  const answer   = document.getElementById('eval-answer').value.trim();
+
+  if (!question) return showError('eval-error', 'Please enter the interview question.');
+  if (!answer)   return showError('eval-error', 'Please write your answer.');
+
+  setLoading('eval-btn', 'eval-spinner', true);
+
+  try {
+    const res  = await fetch(`${API}/api/evaluate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, user_answer: answer })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Evaluation failed.');
+
+    renderEvaluation(data.evaluation);
+    document.getElementById('tab-3').classList.add('done');
+  } catch(e) {
+    showError('eval-error', '❌ ' + e.message);
+  } finally {
+    setLoading('eval-btn', 'eval-spinner', false);
+  }
+}
+
+function renderEvaluation(e) {
+  document.getElementById('eval-score-num').textContent = e.score;
+  document.getElementById('eval-bar').style.width = (e.score * 10) + '%';
+  document.getElementById('eval-feedback').textContent = e.feedback;
+  document.getElementById('eval-ideal').textContent    = e.ideal_answer;
+  document.getElementById('eval-result').style.display = 'block';
+}
+</script>
+</body>
+</html>
