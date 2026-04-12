@@ -11,22 +11,26 @@ from evaluator import evaluate_candidate_answer
 
 app = FastAPI(title="AI Career Copilot API")
 
-# Serve static files (index.html) from the "static" folder
+# Ensure required folders exist
 os.makedirs("static", exist_ok=True)
+
+# Serve static frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# Serve the UI at root URL: http://localhost:8000/
+# Root endpoint → serves UI
 @app.get("/")
 async def serve_ui():
     return FileResponse("static/index.html")
 
 
+# Request model
 class AnswerPayload(BaseModel):
     question: str
     user_answer: str
 
 
+# Analyze resume + JD
 @app.post("/api/analyze")
 async def analyze_profile(jd_text: str = Form(...), resume: UploadFile = File(...)):
     file_location = f"temp_{resume.filename}"
@@ -34,22 +38,26 @@ async def analyze_profile(jd_text: str = Form(...), resume: UploadFile = File(..
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(resume.file, file_object)
 
-    # Fixed: use try/finally so temp file is always deleted even if an error occurs
     try:
         analysis = analyze_resume_against_jd(file_location, jd_text)
         resume_text = extract_text_from_pdf(file_location)
-        # Fixed: persist the retriever to disk instead of storing in memory dict
+
+        # Store retriever (persist to disk)
         setup_rag_retriever(resume_text, jd_text)
+
     finally:
         if os.path.exists(file_location):
             os.remove(file_location)
 
-    return {"status": "success", "analysis": analysis}
+    return {
+        "status": "success",
+        "analysis": analysis
+    }
 
 
+# Generate interview questions
 @app.get("/api/generate-questions")
 async def get_questions(focus: str = "Technical Skills"):
-    # Fixed: load retriever from persisted disk store — works across workers and restarts
     try:
         retriever = load_rag_retriever()
     except Exception:
@@ -59,15 +67,20 @@ async def get_questions(focus: str = "Technical Skills"):
         )
 
     questions = generate_interview_questions(retriever, focus)
-    return {"questions": questions}
+
+    return {
+        "questions": questions
+    }
 
 
+# Evaluate answer
 @app.post("/api/evaluate")
 async def evaluate_answer(payload: AnswerPayload):
-    evaluation = evaluate_candidate_answer(payload.question, payload.user_answer)
-    return {"evaluation": evaluation}
+    evaluation = evaluate_candidate_answer(
+        payload.question,
+        payload.user_answer
+    )
 
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    return {
+        "evaluation": evaluation
+    }
