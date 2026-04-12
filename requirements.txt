@@ -10,5 +10,4 @@ pypdf
 pydantic
 langgraph
 python-dotenv
-sentence-transformers
 python-multipart

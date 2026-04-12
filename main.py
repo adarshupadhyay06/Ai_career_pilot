@@ -1,17 +1,15 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Force CPU (prevents GPU-related startup issues)
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import shutil
-import os
-
-from analyzer import analyze_resume_against_jd, extract_text_from_pdf
-from rag_engine import setup_rag_retriever, load_rag_retriever, generate_interview_questions
-from evaluator import evaluate_candidate_answer
 
 app = FastAPI(title="AI Career Copilot API")
 
-# Ensure required folders exist
+# Ensure static folder exists
 os.makedirs("static", exist_ok=True)
 
 # Serve static frontend
@@ -30,9 +28,14 @@ class AnswerPayload(BaseModel):
     user_answer: str
 
 
-# Analyze resume + JD
+# 🔹 Analyze resume + JD
 @app.post("/api/analyze")
 async def analyze_profile(jd_text: str = Form(...), resume: UploadFile = File(...)):
+    
+    # Lazy imports (CRITICAL for deployment)
+    from analyzer import analyze_resume_against_jd, extract_text_from_pdf
+    from rag_engine import setup_rag_retriever
+
     file_location = f"temp_{resume.filename}"
 
     with open(file_location, "wb+") as file_object:
@@ -42,7 +45,7 @@ async def analyze_profile(jd_text: str = Form(...), resume: UploadFile = File(..
         analysis = analyze_resume_against_jd(file_location, jd_text)
         resume_text = extract_text_from_pdf(file_location)
 
-        # Store retriever (persist to disk)
+        # Persist retriever
         setup_rag_retriever(resume_text, jd_text)
 
     finally:
@@ -55,9 +58,13 @@ async def analyze_profile(jd_text: str = Form(...), resume: UploadFile = File(..
     }
 
 
-# Generate interview questions
+# 🔹 Generate interview questions
 @app.get("/api/generate-questions")
 async def get_questions(focus: str = "Technical Skills"):
+
+    # Lazy imports
+    from rag_engine import load_rag_retriever, generate_interview_questions
+
     try:
         retriever = load_rag_retriever()
     except Exception:
@@ -73,9 +80,13 @@ async def get_questions(focus: str = "Technical Skills"):
     }
 
 
-# Evaluate answer
+# 🔹 Evaluate answer
 @app.post("/api/evaluate")
 async def evaluate_answer(payload: AnswerPayload):
+
+    # Lazy import
+    from evaluator import evaluate_candidate_answer
+
     evaluation = evaluate_candidate_answer(
         payload.question,
         payload.user_answer
